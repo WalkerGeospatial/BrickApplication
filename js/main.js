@@ -436,14 +436,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // ── Scale slider ──────────────────────────────────────────────────────────
 
   function applyScale(maxPlates) {
-    // Preserve any colour edits the user has made since last generation/snap
-    const savedColorGrid = state.editMode ? state.brickData.colorGrid : null;
+    // Always preserve the current colours — scaling only changes heights.
+    // This keeps snapped colours, bulk edits, and individual brick edits intact.
+    const savedColorGrid = state.brickData.colorGrid;
     state.brickData = BrickCalculator.convert(state.elevGrid, maxPlates, colorModeEl.value);
-    if (savedColorGrid) {
-      state.brickData.colorGrid = savedColorGrid;
-    } else if (state.imageColorGrid) {
-      state.brickData.colorGrid = state.imageColorGrid;
-    }
+    state.brickData.colorGrid = savedColorGrid;
     updateStats(state.brickData.stats);
     state.renderer.build(state.brickData.plateGrid, state.brickData.colorGrid);
   }
