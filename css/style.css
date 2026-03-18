@@ -388,7 +388,123 @@ html, body {
   display: block;
 }
 
-#preview-toolbar {
+/* ─── Brick colour picker ─────────────────────────── */
+#brick-color-picker {
+  position: absolute;
+  background: rgba(15, 17, 23, 0.96);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  z-index: 20;
+  min-width: 220px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.picker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.picker-header button {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  padding: 0 2px;
+  line-height: 1;
+}
+
+.picker-header button:hover { color: var(--text); }
+
+#picker-swatches {
+  display: grid;
+  grid-template-columns: repeat(10, 20px);
+  gap: 3px;
+}
+
+.picker-swatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 3px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.1s, border-color 0.1s;
+}
+
+.picker-swatch:hover {
+  transform: scale(1.25);
+  z-index: 1;
+}
+
+.picker-swatch.selected {
+  border-color: #fff;
+  transform: scale(1.15);
+}
+
+#bulk-recolor-panel {
+  position: absolute;
+  top: 40px;
+  right: 10px;
+  width: 260px;
+  background: rgba(15, 17, 23, 0.96);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px;
+  z-index: 20;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+}
+
+.bulk-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 8px 0 5px;
+}
+
+.bulk-section-label:first-of-type { margin-top: 2px; }
+
+#bulk-source-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+#bulk-palette-swatches {
+  display: grid;
+  grid-template-columns: repeat(10, 20px);
+  gap: 3px;
+}
+
+.bulk-source-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: transform 0.1s, border-color 0.1s;
+  position: relative;
+}
+
+.bulk-source-swatch:hover { transform: scale(1.2); }
+
+.bulk-source-swatch.selected {
+  border-color: var(--accent);
+  transform: scale(1.1);
+}
+
+#preview-toolbar-top {
   position: absolute;
   top: 10px;
   right: 10px;
@@ -397,7 +513,7 @@ html, body {
   z-index: 5;
 }
 
-#preview-toolbar button {
+#preview-toolbar-top button {
   padding: 6px 12px;
   border: 1px solid var(--border);
   background: rgba(26, 29, 39, 0.85);
@@ -409,7 +525,107 @@ html, body {
   transition: all 0.2s;
 }
 
-#preview-toolbar button:hover {
+#preview-toolbar-top button:hover {
+  border-color: var(--accent2);
+  color: var(--accent2);
+}
+
+#preview-toolbar-bottom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(15, 17, 23, 0.90);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid var(--border);
+  z-index: 5;
+}
+
+.snap-btn {
+  padding: 10px 20px;
+  background: var(--accent2);
+  color: #1a1a1a;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.3px;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+
+.snap-btn:hover {
+  background: #e6b800;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(255, 207, 0, 0.35);
+}
+
+.bulk-btn {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.bulk-btn:hover {
+  border-color: var(--accent2);
+  color: var(--accent2);
+  transform: translateY(-1px);
+  box-shadow: none;
+}
+
+.snap-btn.snapped {
+  background: var(--surface2);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  box-shadow: none;
+  transform: none;
+}
+
+.edit-toggle-btn {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.edit-toggle-btn:hover {
+  border-color: var(--accent2);
+  color: var(--accent2);
+  transform: translateY(-1px);
+  box-shadow: none;
+}
+
+.edit-toggle-btn.active {
+  background: var(--surface2);
+  color: var(--accent2);
+  border: 1px solid var(--accent2);
+  box-shadow: 0 0 8px rgba(255, 207, 0, 0.2);
+}
+
+.preview-exports {
+  display: flex;
+  gap: 8px;
+}
+
+.preview-exports button {
+  padding: 8px 14px;
+  border: 1px solid var(--border);
+  background: rgba(36, 39, 54, 0.9);
+  color: var(--text);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.preview-exports button:hover {
   border-color: var(--accent2);
   color: var(--accent2);
 }

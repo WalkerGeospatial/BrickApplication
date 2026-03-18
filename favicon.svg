@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <!-- Background -->
+  <rect width="32" height="32" rx="6" fill="#1a1d27"/>
+  <!-- Four LEGO-colored bricks in a 2x2 grid -->
+  <rect x="3"  y="3"  width="12" height="12" rx="2" fill="#e3000b"/>
+  <rect x="17" y="3"  width="12" height="12" rx="2" fill="#ffcf00"/>
+  <rect x="3"  y="17" width="12" height="12" rx="2" fill="#006cb7"/>
+  <rect x="17" y="17" width="12" height="12" rx="2" fill="#4b9f4a"/>
+  <!-- Studs -->
+  <circle cx="9"  cy="9"  r="2.5" fill="rgba(255,255,255,0.35)"/>
+  <circle cx="23" cy="9"  r="2.5" fill="rgba(255,255,255,0.35)"/>
+  <circle cx="9"  cy="23" r="2.5" fill="rgba(255,255,255,0.35)"/>
+  <circle cx="23" cy="23" r="2.5" fill="rgba(255,255,255,0.35)"/>
+</svg>

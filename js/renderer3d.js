@@ -19,9 +19,14 @@ class Renderer3D {
     this._raf      = null;
     this._built    = false;
     // stored so we can dispose on rebuild
-    this._brickMesh = null;
-    this._studMesh  = null;
-    this._baseMesh  = null;
+    this._brickMesh  = null;
+    this._studMesh   = null;
+    this._baseMesh   = null;
+    // colour editing
+    this._colors       = null;   // hex string per instance, mirrors mesh colours
+    this._highlightIdx = null;
+    this._outlineMesh  = null;
+    this._raycaster    = new THREE.Raycaster();
   }
 
   // ── Init ────────────────────────────────────────────────────────────────
@@ -132,6 +137,8 @@ class Renderer3D {
     this._studMesh.castShadow    = true;
     this._studMesh.receiveShadow = false;
 
+    this._colors = new Array(N);
+
     const dummy = new THREE.Object3D();
     const color = new THREE.Color();
 
@@ -149,6 +156,7 @@ class Renderer3D {
         const x =  originX + col * CELL;
         const z = -originZ - row * CELL; // negate so north(high row) = -Z = background = top of screen
 
+        this._colors[idx] = hex;
         color.set(hex);
 
         // ── Brick body ──────────────────────────────────────────────────
@@ -204,9 +212,92 @@ class Renderer3D {
       obj.material.dispose();
       this.scene.remove(obj);
     }
-    this._brickMesh = null;
-    this._studMesh  = null;
-    this._baseMesh  = null;
+    this._brickMesh    = null;
+    this._studMesh     = null;
+    this._baseMesh     = null;
+    this._colors       = null;
+    this._highlightIdx = null;
+    if (this._outlineMesh) {
+      this._outlineMesh.geometry.dispose();
+      this._outlineMesh.material.dispose();
+      this.scene.remove(this._outlineMesh);
+      this._outlineMesh = null;
+    }
+  }
+
+  // ── Colour editing ───────────────────────────────────────────────────────
+
+  /**
+   * Raycast from mouse position and return the hit instance index, or null.
+   * @param {number} clientX
+   * @param {number} clientY
+   * @returns {number|null} instanceId (0–1023)
+   */
+  pickBrick(clientX, clientY) {
+    if (!this._brickMesh) return null;
+    const rect = this.container.getBoundingClientRect();
+    const x =  ((clientX - rect.left)  / rect.width)  * 2 - 1;
+    const y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    this._raycaster.setFromCamera({ x, y }, this.camera);
+    // Check both brick bodies and studs; take closest hit
+    const hits = this._raycaster.intersectObjects([this._brickMesh, this._studMesh]);
+    if (!hits.length) return null;
+    return hits[0].instanceId ?? null;
+  }
+
+  /** Apply a hex colour to a single brick + its stud. */
+  setInstanceColor(instanceId, hex) {
+    if (!this._brickMesh || instanceId == null) return;
+    this._colors[instanceId] = hex;
+    const c = new THREE.Color(hex);
+    this._brickMesh.setColorAt(instanceId, c);
+    this._studMesh.setColorAt(instanceId, c);
+    this._brickMesh.instanceColor.needsUpdate = true;
+    this._studMesh.instanceColor.needsUpdate  = true;
+  }
+
+  /** Replace every instance of fromHex with toHex. */
+  replaceColor(fromHex, toHex) {
+    if (!this._brickMesh || !this._colors) return;
+    const from = fromHex.toUpperCase();
+    const to   = new THREE.Color(toHex);
+    for (let i = 0; i < this._colors.length; i++) {
+      if ((this._colors[i] || '').toUpperCase() === from) {
+        this._colors[i] = toHex;
+        this._brickMesh.setColorAt(i, to);
+        this._studMesh.setColorAt(i, to);
+      }
+    }
+    this._brickMesh.instanceColor.needsUpdate = true;
+    this._studMesh.instanceColor.needsUpdate  = true;
+  }
+
+  /** Show a red outline around the selected brick. Pass null to clear. */
+  highlightInstance(instanceId) {
+    // Remove existing outline
+    if (this._outlineMesh) {
+      this._outlineMesh.geometry.dispose();
+      this._outlineMesh.material.dispose();
+      this.scene.remove(this._outlineMesh);
+      this._outlineMesh = null;
+    }
+    this._highlightIdx = instanceId;
+    if (instanceId == null || !this._brickMesh) return;
+
+    // Read this instance's transform to get position + height
+    const mat = new THREE.Matrix4();
+    this._brickMesh.getMatrixAt(instanceId, mat);
+    const pos   = new THREE.Vector3();
+    const scale = new THREE.Vector3();
+    mat.decompose(pos, new THREE.Quaternion(), scale);
+
+    // Outline = slightly wider box rendered from BackSide in red
+    const GAP = 0.04;
+    const outlineGeo = new THREE.BoxGeometry(1 - GAP + 0.1, scale.y, 1 - GAP + 0.1);
+    const outlineMat = new THREE.MeshBasicMaterial({ color: 0xe3000b, side: THREE.BackSide });
+    this._outlineMesh = new THREE.Mesh(outlineGeo, outlineMat);
+    this._outlineMesh.position.copy(pos);
+    this.scene.add(this._outlineMesh);
   }
 
   resetCamera() {
