@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brick Elevation Map Builder</title>
+
+  <!-- Leaflet -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css">
+
+  <!-- App styles -->
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ── Sidebar ───────────────────────────────────────────────────── -->
+  <aside id="sidebar">
+
+    <!-- Branding -->
+    <div class="sidebar-section" style="padding:16px 16px 12px">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px">
+        <div class="logo-bricks">
+          <div class="logo-brick" style="background:#e3000b"></div>
+          <div class="logo-brick" style="background:#ffcf00"></div>
+          <div class="logo-brick" style="background:#006cb7"></div>
+          <div class="logo-brick" style="background:#4b9f4a"></div>
+        </div>
+        <span style="font-size:15px;font-weight:800;letter-spacing:0.5px">
+          BRICK <span style="color:#e3000b">ELEVATION</span> MAP
+        </span>
+      </div>
+      <p style="font-size:11px;color:var(--text-muted);line-height:1.5">
+        Select a region, generate elevation data,<br>preview your brick terrain in 3D.
+      </p>
+    </div>
+
+    <!-- Steps -->
+    <div class="sidebar-section">
+      <h2>Workflow</h2>
+      <div class="steps">
+        <div class="step active" id="step-1">
+          <div class="step-num">1</div>
+          <div class="step-label">Draw area on map</div>
+        </div>
+        <div class="step" id="step-2">
+          <div class="step-num">2</div>
+          <div class="step-label">Generate brick map</div>
+        </div>
+        <div class="step" id="step-3">
+          <div class="step-num">3</div>
+          <div class="step-label">Explore 3D preview</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Draw controls -->
+    <div class="sidebar-section">
+      <h2>Selection</h2>
+      <button class="btn btn-draw" id="btn-draw">✏ Draw Rectangle</button>
+      <button class="btn btn-secondary" id="btn-clear" disabled>✕ Clear Selection</button>
+    </div>
+
+    <!-- Area info -->
+    <div class="sidebar-section">
+      <h2>Area Info</h2>
+      <div id="area-info">
+        <span style="color:var(--text-muted)">Draw a rectangle on the map to begin.</span>
+      </div>
+    </div>
+
+    <!-- Color mode -->
+    <div class="sidebar-section">
+      <h2>Color Mode</h2>
+      <div class="field">
+        <select id="color-mode">
+          <option value="terrain">Terrain palette</option>
+          <option value="satellite" selected>Satellite imagery</option>
+          <option value="brick-snap">Satellite + brick snap</option>
+        </select>
+      </div>
+      <p id="color-mode-hint" style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:4px">
+        Samples real satellite imagery colours per stud.
+      </p>
+    </div>
+
+    <!-- Generate button -->
+    <div class="sidebar-section">
+      <button class="btn btn-primary" id="btn-generate" disabled>
+        ▶ Generate Brick Map
+      </button>
+
+      <!-- Progress -->
+      <div id="progress-wrap" style="margin-top:12px">
+        <div id="progress-bar-bg">
+          <div id="progress-bar-fill"></div>
+        </div>
+        <div id="progress-label"></div>
+      </div>
+    </div>
+
+    <!-- Elevation scale (shown after generation) -->
+    <div class="sidebar-section" id="scale-section" style="display:none">
+      <h2>Elevation Scale</h2>
+      <div class="field">
+        <label>Max height: <span id="scale-label">6 bricks (18 plates)</span></label>
+        <input type="range" id="scale-slider" min="3" max="48" step="3" value="18"
+               style="width:100%;accent-color:var(--accent);margin-top:4px">
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:2px">
+        <span>1 brick</span>
+        <span>16 bricks</span>
+      </div>
+    </div>
+
+    <!-- Stats (shown after generation) -->
+    <div class="sidebar-section">
+      <h2>Statistics</h2>
+      <div id="stats-wrap">
+        <div class="stat-row">
+          <span class="stat-key">Elevation range</span>
+          <span class="stat-val" id="stat-elev-range">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-key">Total plates</span>
+          <span class="stat-val" id="stat-total-plates">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-key">Equivalent bricks</span>
+          <span class="stat-val" id="stat-total-bricks">—</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Parts export (shown after generation) -->
+    <div class="sidebar-section" id="export-section" style="display:none">
+      <h2>Export Parts List</h2>
+      <p style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-bottom:8px">
+        Download a parts list to import into Bricklink's Wanted List, or a CSV for reference.
+      </p>
+      <button class="btn btn-secondary" id="btn-export-xml" style="margin-bottom:6px;width:100%">
+        ⬇ Bricklink XML (Wanted List)
+      </button>
+      <button class="btn btn-secondary" id="btn-export-csv" style="width:100%">
+        ⬇ CSV Parts List
+      </button>
+    </div>
+
+    <!-- Legend (shown after generation) -->
+    <div class="sidebar-section" style="flex:1">
+      <h2>Terrain Legend</h2>
+      <div id="legend"></div>
+    </div>
+
+  </aside>
+
+  <!-- ── Main area ──────────────────────────────────────────────────── -->
+  <div id="main-area">
+
+    <!-- Header bar -->
+    <div id="header">
+      <div class="logo-bricks">
+        <div class="logo-brick" style="background:#e3000b"></div>
+        <div class="logo-brick" style="background:#ffcf00"></div>
+      </div>
+      <h1>Brick <span>Elevation</span> Map Builder</h1>
+    </div>
+
+    <div id="panels">
+
+      <!-- Map -->
+      <div id="map-panel">
+        <div id="map"></div>
+        <div id="map-hint" class="hidden">Click and drag on the map to select an area</div>
+      </div>
+
+      <!-- 3D Preview -->
+      <div id="preview-panel">
+        <div id="preview-label">3D Preview</div>
+
+        <!-- Three.js canvas goes here -->
+        <div id="preview-canvas" style="width:100%;height:100%"></div>
+
+        <!-- Loading overlay -->
+        <div id="preview-loading">
+          <div class="spinner"></div>
+          <p>Fetching elevation data…</p>
+        </div>
+
+        <!-- Toolbar -->
+        <div id="preview-toolbar">
+          <button id="btn-reset-camera">⟳ Reset Camera</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ── Scripts ─────────────────────────────────────────────────────── -->
+
+<!-- Leaflet -->
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+
+<!-- Three.js r128 (legacy build — sets global THREE) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- OrbitControls for r128 (sets THREE.OrbitControls) -->
+<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+<!-- App modules (order matters) -->
+<script src="js/imageryService.js"></script>
+<script src="js/mapHandler.js"></script>
+<script src="js/elevationService.js"></script>
+<script src="js/legoCalculator.js"></script>
+<script src="js/renderer3d.js"></script>
+<script src="js/partsExport.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>

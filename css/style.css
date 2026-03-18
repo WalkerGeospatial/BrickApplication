@@ -1,0 +1,511 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0f1117;
+  --surface: #1a1d27;
+  --surface2: #242736;
+  --border: #2e3248;
+  --accent: #e3000b;      /* brick red */
+  --accent2: #ffcf00;     /* brick yellow */
+  --text: #e8eaf0;
+  --text-muted: #7a7f99;
+  --success: #4caf50;
+  --sidebar-w: 300px;
+}
+
+html, body {
+  height: 100%;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+/* ─── Layout ─────────────────────────────────── */
+#app {
+  display: flex;
+  height: 100vh;
+}
+
+#sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+#main-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+#panels {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+}
+
+#map-panel {
+  flex: 1;
+  position: relative;
+}
+
+#preview-panel {
+  width: 0;
+  flex-shrink: 0;
+  background: var(--surface);
+  border-left: 1px solid var(--border);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+#preview-panel.visible {
+  width: 50%;
+}
+
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+/* ─── Header ─────────────────────────────────── */
+#header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+#header .logo-bricks {
+  display: flex;
+  gap: 3px;
+}
+
+.logo-brick {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+}
+
+#header h1 {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+#header h1 span {
+  color: var(--accent);
+}
+
+/* ─── Sidebar sections ────────────────────────── */
+.sidebar-section {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.sidebar-section h2 {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+/* ─── Step indicators ─────────────────────────── */
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.step.active {
+  background: rgba(227, 0, 11, 0.08);
+  border-color: rgba(227, 0, 11, 0.3);
+}
+
+.step.done {
+  background: rgba(76, 175, 80, 0.08);
+  border-color: rgba(76, 175, 80, 0.3);
+}
+
+.step-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.step.active .step-num {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+.step.done .step-num {
+  background: var(--success);
+  border-color: var(--success);
+  color: white;
+}
+
+.step.done .step-num::after {
+  content: '✓';
+}
+
+.step-label {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.step.active .step-label,
+.step.done .step-label {
+  color: var(--text);
+}
+
+/* ─── Form controls ───────────────────────────── */
+.field {
+  margin-bottom: 12px;
+}
+
+.field label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.field select,
+.field input[type="number"] {
+  width: 100%;
+  padding: 8px 10px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.field select:focus,
+.field input[type="number"]:focus {
+  border-color: var(--accent);
+}
+
+.field select option {
+  background: var(--surface2);
+}
+
+/* ─── Info box ────────────────────────────────── */
+#area-info {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--text-muted);
+  min-height: 80px;
+}
+
+#area-info .info-val {
+  color: var(--text);
+  font-weight: 600;
+}
+
+#area-info .info-accent {
+  color: var(--accent2);
+  font-weight: 700;
+}
+
+/* ─── Buttons ─────────────────────────────────── */
+.btn {
+  width: 100%;
+  padding: 10px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.3px;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: white;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #c8000a;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(227, 0, 11, 0.3);
+}
+
+.btn-secondary {
+  background: var(--surface2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  border-color: var(--accent2);
+  color: var(--accent2);
+}
+
+.btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+.btn-draw {
+  background: var(--accent2);
+  color: #1a1a1a;
+  margin-bottom: 8px;
+}
+
+.btn-draw:hover:not(:disabled) {
+  background: #e6b800;
+}
+
+/* ─── Progress ────────────────────────────────── */
+#progress-wrap {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+}
+
+#progress-wrap.visible {
+  display: flex;
+}
+
+#progress-bar-bg {
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+#progress-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+#progress-label {
+  font-size: 11px;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* ─── Stats ───────────────────────────────────── */
+#stats-wrap {
+  display: none;
+  flex-direction: column;
+  gap: 6px;
+}
+
+#stats-wrap.visible {
+  display: flex;
+}
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+
+.stat-row .stat-key {
+  color: var(--text-muted);
+}
+
+.stat-row .stat-val {
+  font-weight: 700;
+  color: var(--accent2);
+}
+
+/* ─── Elevation legend ────────────────────────── */
+#legend {
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+}
+
+#legend.visible {
+  display: flex;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.legend-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ─── 3D Preview panel ────────────────────────── */
+#preview-panel canvas {
+  display: block;
+}
+
+#preview-toolbar {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  gap: 6px;
+  z-index: 5;
+}
+
+#preview-toolbar button {
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  background: rgba(26, 29, 39, 0.85);
+  backdrop-filter: blur(4px);
+  color: var(--text);
+  border-radius: 6px;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+#preview-toolbar button:hover {
+  border-color: var(--accent2);
+  color: var(--accent2);
+}
+
+#preview-label {
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+#preview-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface);
+  gap: 16px;
+  z-index: 4;
+}
+
+#preview-loading.hidden {
+  display: none;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+#preview-loading p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ─── Map draw hint ───────────────────────────── */
+#map-hint {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(26, 29, 39, 0.92);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 18px;
+  font-size: 13px;
+  color: var(--text-muted);
+  pointer-events: none;
+  z-index: 500;
+  transition: opacity 0.3s;
+  white-space: nowrap;
+}
+
+#map-hint.hidden {
+  opacity: 0;
+}
+
+/* ─── Leaflet overrides ───────────────────────── */
+.leaflet-container {
+  background: #0a0e1a;
+}
+
+.leaflet-draw-toolbar a {
+  background-color: var(--surface2) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+.leaflet-bar a {
+  background-color: var(--surface2) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+
+.leaflet-bar a:hover {
+  background-color: var(--surface) !important;
+}
+
+/* ─── Scrollbar ───────────────────────────────── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
