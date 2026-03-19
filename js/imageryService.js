@@ -118,16 +118,97 @@ const ImageryService = (() => {
     '#E4ADC8': 104,  '#FC97AC':  23,
   };
 
-  // ── Colour snapping (weighted RGB) ───────────────────────────────────
-  // Redmean approximation — weights R/G/B channels by perceived luminance.
+  // ── Colour snapping — CIEDE2000 perceptual distance ──────────────────
+
+  function srgbToLinear(c) {
+    const s = c / 255;
+    return s <= 0.04045 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+  }
+
+  function rgbToLab(r, g, b) {
+    // Linear RGB
+    const rl = srgbToLinear(r), gl = srgbToLinear(g), bl = srgbToLinear(b);
+    // XYZ (D65)
+    const X = 0.4124564 * rl + 0.3575761 * gl + 0.1804375 * bl;
+    const Y = 0.2126729 * rl + 0.7151522 * gl + 0.0721750 * bl;
+    const Z = 0.0193339 * rl + 0.1191920 * gl + 0.9503041 * bl;
+    // Normalise by D65 white point
+    const fx = f(X / 0.95047);
+    const fy = f(Y / 1.00000);
+    const fz = f(Z / 1.08883);
+    return [116 * fy - 16, 500 * (fx - fy), 200 * (fy - fz)];
+  }
+
+  function f(t) {
+    const d = 6 / 29;
+    return t > d * d * d ? Math.cbrt(t) : t / (3 * d * d) + 4 / 29;
+  }
+
+  function deltaE2000(lab1, lab2) {
+    const [L1, a1, b1] = lab1;
+    const [L2, a2, b2] = lab2;
+
+    const C1 = Math.sqrt(a1 * a1 + b1 * b1);
+    const C2 = Math.sqrt(a2 * a2 + b2 * b2);
+    const Cavg = (C1 + C2) / 2;
+    const Cavg7 = Math.pow(Cavg, 7);
+    const G = 0.5 * (1 - Math.sqrt(Cavg7 / (Cavg7 + 6103515625))); // 25^7
+    const a1p = a1 * (1 + G), a2p = a2 * (1 + G);
+    const C1p = Math.sqrt(a1p * a1p + b1 * b1);
+    const C2p = Math.sqrt(a2p * a2p + b2 * b2);
+
+    const h1p = (Math.atan2(b1, a1p) * 180 / Math.PI + 360) % 360;
+    const h2p = (Math.atan2(b2, a2p) * 180 / Math.PI + 360) % 360;
+
+    const dLp = L2 - L1;
+    const dCp = C2p - C1p;
+
+    let dhp;
+    if (C1p * C2p === 0) dhp = 0;
+    else if (Math.abs(h2p - h1p) <= 180) dhp = h2p - h1p;
+    else if (h2p - h1p > 180) dhp = h2p - h1p - 360;
+    else dhp = h2p - h1p + 360;
+
+    const dHp = 2 * Math.sqrt(C1p * C2p) * Math.sin(dhp * Math.PI / 360);
+
+    const Lavg = (L1 + L2) / 2;
+    const Cavgp = (C1p + C2p) / 2;
+
+    let havgp;
+    if (C1p * C2p === 0) havgp = h1p + h2p;
+    else if (Math.abs(h1p - h2p) <= 180) havgp = (h1p + h2p) / 2;
+    else if (h1p + h2p < 360) havgp = (h1p + h2p + 360) / 2;
+    else havgp = (h1p + h2p - 360) / 2;
+
+    const deg = Math.PI / 180;
+    const T = 1
+      - 0.17 * Math.cos((havgp - 30) * deg)
+      + 0.24 * Math.cos(2 * havgp * deg)
+      + 0.32 * Math.cos((3 * havgp + 6) * deg)
+      - 0.20 * Math.cos((4 * havgp - 63) * deg);
+
+    const SL = 1 + 0.015 * (Lavg - 50) * (Lavg - 50) / Math.sqrt(20 + (Lavg - 50) * (Lavg - 50));
+    const SC = 1 + 0.045 * Cavgp;
+    const SH = 1 + 0.015 * Cavgp * T;
+
+    const Cavgp7 = Math.pow(Cavgp, 7);
+    const RC = 2 * Math.sqrt(Cavgp7 / (Cavgp7 + 6103515625));
+    const dTheta = 30 * Math.exp(-Math.pow((havgp - 275) / 25, 2));
+    const RT = -Math.sin(2 * dTheta * deg) * RC;
+
+    const l = dLp / SL, c = dCp / SC, h = dHp / SH;
+    return Math.sqrt(l * l + c * c + h * h + RT * c * h);
+  }
+
+  // Precompute Lab values for every brick palette entry (avoids recomputing per call)
+  const BRICK_PALETTE_LAB = BRICK_PALETTE.map(([r, g, b, hex]) => ({ lab: rgbToLab(r, g, b), hex }));
 
   function snapToBrick(r, g, b) {
-    let minDist = Infinity, bestHex = BRICK_PALETTE[0][3];
-    for (const [pr, pg, pb, hex] of BRICK_PALETTE) {
-      const rm = (r + pr) / 2;
-      const dR = r - pr, dG = g - pg, dB = b - pb;
-      const d = (2 + rm / 256) * dR * dR + 4 * dG * dG + (2 + (255 - rm) / 256) * dB * dB;
-      if (d < minDist) { minDist = d; bestHex = hex; }
+    const lab = rgbToLab(r, g, b);
+    let minDist = Infinity, bestHex = BRICK_PALETTE_LAB[0].hex;
+    for (const entry of BRICK_PALETTE_LAB) {
+      const d = deltaE2000(lab, entry.lab);
+      if (d < minDist) { minDist = d; bestHex = entry.hex; }
     }
     return bestHex;
   }
