@@ -78,15 +78,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const sidebarBackdrop = el('sidebar-backdrop');
   const btnMenu         = el('btn-menu');
 
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    sidebarBackdrop.classList.remove('visible');
+  }
+
   btnMenu.addEventListener('click', () => {
     sidebar.classList.toggle('open');
     sidebarBackdrop.classList.toggle('visible');
   });
 
-  sidebarBackdrop.addEventListener('click', () => {
-    sidebar.classList.remove('open');
-    sidebarBackdrop.classList.remove('visible');
-  });
+  el('btn-sidebar-close').addEventListener('click', closeSidebar);
+  sidebarBackdrop.addEventListener('click', closeSidebar);
 
   // ── Renderer ─────────────────────────────────────────────────────────────
 

@@ -726,7 +726,7 @@ html, body {
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
 
-/* ─── Mobile menu button (hidden on desktop) ─── */
+/* ─── Mobile menu / close buttons (hidden on desktop) ─── */
 .btn-menu {
   display: none;
   background: none;
@@ -739,13 +739,28 @@ html, body {
   flex-shrink: 0;
 }
 
+.btn-sidebar-close {
+  display: none;
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 16px;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.btn-sidebar-close:hover { color: var(--text); }
+
 /* ─── Sidebar backdrop (mobile overlay) ──────── */
 #sidebar-backdrop {
   display: none;
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.55);
-  z-index: 9;
+  z-index: 1000;
 }
 
 #sidebar-backdrop.visible { display: block; }
@@ -753,17 +768,19 @@ html, body {
 /* ─── Mobile layout (≤ 768px) ────────────────── */
 @media (max-width: 768px) {
 
-  /* Show the hamburger */
-  .btn-menu { display: block; }
+  /* Show hamburger and sidebar close button */
+  .btn-menu         { display: block; }
+  .btn-sidebar-close { display: block; }
 
-  /* Sidebar becomes a fixed drawer sliding in from the left */
+  /* Sidebar becomes a fixed drawer sliding in from the left,
+     z-index above Leaflet controls (~800) and the backdrop */
   #sidebar {
     position: fixed;
     top: 0;
     left: calc(-1 * var(--sidebar-w) - 2px);
     height: 100%;
     transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 10;
+    z-index: 1001;
   }
 
   #sidebar.open { left: 0; }
@@ -771,18 +788,24 @@ html, body {
   /* Panels stack vertically */
   #panels { flex-direction: column; }
 
-  /* Map gets a fixed portion of the viewport height */
+  /* Map gets roughly half the remaining viewport height */
   #map-panel {
-    height: 45vh;
-    flex: none;
+    flex: 1;
   }
 
-  /* 3D preview goes full-width and fills the rest */
+  /* 3D preview: hidden by default (flex: 0 + min-height: 0 collapses it),
+     visible once .visible class is added by generateMap */
   #preview-panel {
     width: 100% !important;
-    flex: 1;
+    flex: 0;
+    min-height: 0;
+    transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     border-left: none;
     border-top: 1px solid var(--border);
+  }
+
+  #preview-panel.visible {
+    flex: 1;
   }
 
   /* Bottom toolbar wraps and uses tighter padding */
