@@ -47,7 +47,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const brickColorPicker  = el('brick-color-picker');
   const pickerSwatches    = el('picker-swatches');
   const btnClosePicker    = el('btn-close-picker');
-  const previewCanvas     = el('preview-canvas');
+  const previewCanvas      = el('preview-canvas');
+  const btnClosePreview    = el('btn-close-preview');
 
   const bulkPanel         = el('bulk-recolor-panel');
   const bulkSourceEl      = el('bulk-source-swatches');
@@ -263,6 +264,15 @@ document.addEventListener('DOMContentLoaded', () => {
   btnGenerate.addEventListener('click', generateMap);
 
   btnReset3d.addEventListener('click', () => state.renderer.resetCamera());
+
+  btnClosePreview.addEventListener('click', () => {
+    previewPanel.classList.remove('visible');
+    previewToolbarBot.style.display = 'none';
+    closePicker();
+    bulkPanel.style.display = 'none';
+    // Let the map re-fill its new size after the CSS transition
+    setTimeout(() => mapHandler.map.invalidateSize(), 420);
+  });
 
   btnSnapColors.addEventListener('click', () => {
     if (!state.imageColorGrid) return;

@@ -19,12 +19,16 @@ html, body {
   background: var(--bg);
   color: var(--text);
   overflow: hidden;
+  /* Prevent iOS Safari from shifting layout when browser chrome shows/hides */
+  position: fixed;
+  width: 100%;
 }
 
 /* ─── Layout ─────────────────────────────────── */
 #app {
   display: flex;
   height: 100vh;
+  height: 100dvh; /* dynamic viewport height — stable on mobile as browser chrome toggles */
 }
 
 #sidebar {
@@ -384,6 +388,13 @@ html, body {
 }
 
 /* ─── 3D Preview panel ────────────────────────── */
+/* Canvas container fills the panel absolutely so height:100% always resolves correctly
+   regardless of whether the panel parent is a flex container */
+#preview-canvas {
+  position: absolute;
+  inset: 0;
+}
+
 #preview-panel canvas {
   display: block;
 }
@@ -793,19 +804,19 @@ html, body {
     flex: 1;
   }
 
-  /* 3D preview: hidden by default (flex: 0 + min-height: 0 collapses it),
-     visible once .visible class is added by generateMap */
+  /* 3D preview: hidden by default, visible once .visible is added */
   #preview-panel {
     width: 100% !important;
     flex: 0;
     min-height: 0;
-    transition: flex 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
     border-left: none;
     border-top: 1px solid var(--border);
   }
 
   #preview-panel.visible {
     flex: 1;
+    min-height: 200px; /* ensure enough room for the canvas + bottom toolbar */
   }
 
   /* Bottom toolbar wraps and uses tighter padding */

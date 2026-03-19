@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
   <title>Brick Elevation Map Builder</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
 
@@ -181,7 +181,7 @@
         <div id="preview-label">3D Preview</div>
 
         <!-- Three.js canvas goes here -->
-        <div id="preview-canvas" style="width:100%;height:100%"></div>
+        <div id="preview-canvas"></div>
 
         <!-- Loading overlay -->
         <div id="preview-loading">
@@ -213,6 +213,7 @@
         <!-- Top-right toolbar -->
         <div id="preview-toolbar-top">
           <button id="btn-reset-camera">⟳ Reset Camera</button>
+          <button id="btn-close-preview">✕ Close</button>
         </div>
 
         <!-- Bottom action bar (shown after generation) -->
