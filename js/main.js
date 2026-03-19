@@ -408,7 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
       btnSnapColors.classList.remove('snapped');
       btnSnapColors.textContent        = '⬡ Snap to Brick Colors';
       exportGroup.style.display        = isSatellite ? 'none' : '';
-      btnBulkRecolor.style.display     = 'none';
+      btnBulkRecolor.style.display     = isSatellite ? 'none' : '';
       btnEditToggle.style.display      = isSatellite ? 'none' : '';
       btnEditToggle.textContent        = '✏ Edit: OFF';
       btnEditToggle.classList.remove('active');
