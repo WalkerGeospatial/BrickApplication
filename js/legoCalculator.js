@@ -119,6 +119,53 @@ const BrickCalculator = (() => {
       ],
     },
 
+    'viridis': {
+      label: 'Viridis',
+      stops: [
+        { threshold: 0.00, hex: '#3F3691', label: 'Deep Violet'        }, // Dark Purple
+        { threshold: 0.20, hex: '#0055BF', label: 'Blue'               }, // Blue
+        { threshold: 0.40, hex: '#36AEBF', label: 'Teal'               }, // Medium Azure
+        { threshold: 0.60, hex: '#4B9F4A', label: 'Green'              }, // Bright Green
+        { threshold: 0.80, hex: '#BBE90B', label: 'Yellow-Green'       }, // Lime
+        { threshold: 0.92, hex: '#F2CD37', label: 'Yellow'             }, // Yellow
+      ],
+    },
+
+    'magma': {
+      label: 'Magma',
+      stops: [
+        { threshold: 0.00, hex: '#212121', label: 'Black'              }, // Black
+        { threshold: 0.20, hex: '#3F3691', label: 'Deep Purple'        }, // Dark Purple
+        { threshold: 0.40, hex: '#923978', label: 'Magenta'            }, // Magenta
+        { threshold: 0.60, hex: '#FC97AC', label: 'Pink'               }, // Pink
+        { threshold: 0.78, hex: '#FE8A18', label: 'Orange'             }, // Orange
+        { threshold: 0.92, hex: '#F6D7B3', label: 'Cream'              }, // Light Nougat
+      ],
+    },
+
+    'inferno': {
+      label: 'Inferno',
+      stops: [
+        { threshold: 0.00, hex: '#212121', label: 'Black'              }, // Black
+        { threshold: 0.18, hex: '#3F3691', label: 'Deep Purple'        }, // Dark Purple
+        { threshold: 0.35, hex: '#720E0F', label: 'Dark Red'           }, // Dark Red
+        { threshold: 0.52, hex: '#C91A09', label: 'Red'                }, // Red
+        { threshold: 0.70, hex: '#FE8A18', label: 'Orange'             }, // Orange
+        { threshold: 0.88, hex: '#F2CD37', label: 'Yellow'             }, // Yellow
+      ],
+    },
+
+    'plasma': {
+      label: 'Plasma',
+      stops: [
+        { threshold: 0.00, hex: '#3F3691', label: 'Deep Purple'        }, // Dark Purple
+        { threshold: 0.25, hex: '#81007B', label: 'Purple'             }, // Purple
+        { threshold: 0.48, hex: '#923978', label: 'Magenta'            }, // Magenta
+        { threshold: 0.68, hex: '#FE8A18', label: 'Orange'             }, // Orange
+        { threshold: 0.88, hex: '#F2CD37', label: 'Yellow'             }, // Yellow
+      ],
+    },
+
   };
 
   function getColor(normalised, stops) {
