@@ -16,9 +16,10 @@
  */
 
 const ElevationService = (() => {
-  const TILE_URL  = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
-  const TILE_SIZE = 256;
-  const tileCache = {}; // "z/x/y" → ImageData
+  const TILE_URL   = 'https://s3.amazonaws.com/elevation-tiles-prod/terrarium/{z}/{x}/{y}.png';
+  const TILE_SIZE  = 256;
+  const MAX_TILES  = 150;
+  const tileCache  = new Map(); // "z/x/y" → ImageData (insertion-order for eviction)
 
   // ── Slippy-map tile math ───────────────────────────────────────────────
 
@@ -53,7 +54,7 @@ const ElevationService = (() => {
 
   function loadTile(z, x, y) {
     const key = `${z}/${x}/${y}`;
-    if (tileCache[key]) return Promise.resolve(tileCache[key]);
+    if (tileCache.has(key)) return Promise.resolve(tileCache.get(key));
 
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -66,7 +67,8 @@ const ElevationService = (() => {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0);
           const imageData = ctx.getImageData(0, 0, TILE_SIZE, TILE_SIZE);
-          tileCache[key] = imageData;
+          tileCache.set(key, imageData);
+          if (tileCache.size > MAX_TILES) tileCache.delete(tileCache.keys().next().value);
           resolve(imageData);
         } catch (e) {
           // Canvas tainted — CORS headers missing on this tile server
@@ -180,7 +182,7 @@ const ElevationService = (() => {
     const elevations = allPoints.map(pt => {
       const tx  = lonToTileX(pt.lon, zoom);
       const ty  = latToTileY(pt.lat, zoom);
-      const img = tileCache[`${zoom}/${tx}/${ty}`];
+      const img = tileCache.get(`${zoom}/${tx}/${ty}`);
       const { px, py } = latLonToPixel(pt.lat, pt.lon, tx, ty, zoom);
       return readElevation(img, px, py);
     });

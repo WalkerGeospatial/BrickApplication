@@ -237,5 +237,5 @@ const PartsExport = (() => {
     triggerDownload(toCsv(parts), 'brick_elevation_map.csv', 'text/csv');
   }
 
-  return { exportBricklink, exportCsv };
+  return { exportBricklink, exportCsv, BRICK_SIZES, PLATE_SIZES, hexToRgb };
 })();

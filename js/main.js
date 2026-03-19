@@ -116,13 +116,36 @@ document.addEventListener('DOMContentLoaded', () => {
     const isSatellite = mode === 'satellite';
 
     colorModeHint.textContent = isSatellite
-      ? 'Samples real satellite imagery colours per stud.'
+      ? (state.elevGrid
+          ? 'Regenerate to fetch satellite imagery for this area.'
+          : 'Samples real satellite imagery colours per stud.')
       : 'Uses elevation-based colours from the selected palette.';
 
     rebuildLegend(mode);
 
     if (state.brickData) {
       legendWrap.classList.toggle('visible', !isSatellite);
+
+      // If we have elevation data and switched to a terrain palette,
+      // re-derive colours immediately — no tile fetch needed.
+      if (!isSatellite && state.elevGrid) {
+        const maxPlates = parseInt(scaleSlider.value);
+        const fresh = BrickCalculator.convert(state.elevGrid, maxPlates, mode);
+        state.brickData.colorGrid = fresh.colorGrid;
+        state.imageColorGrid = null;
+        state.renderer.build(state.brickData.plateGrid, state.brickData.colorGrid);
+
+        // Adjust toolbar: terrain palettes have bulk/edit/export from the start
+        btnSnapColors.style.display  = 'none';
+        exportGroup.style.display    = '';
+        btnBulkRecolor.style.display = '';
+        btnEditToggle.style.display  = '';
+        btnEditToggle.textContent    = '✏ Edit: OFF';
+        btnEditToggle.classList.remove('active');
+        state.editMode = false;
+        closePicker();
+        bulkPanel.style.display = 'none';
+      }
     }
   });
 
@@ -333,11 +356,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (state.brickData) PartsExport.exportCsv(state.brickData);
   });
 
+  let _scaleDebounce = null;
   scaleSlider.addEventListener('input', () => {
     const plates = parseInt(scaleSlider.value);
     const bricks = plates / 3;
     scaleLabel.textContent = `${bricks} brick${bricks !== 1 ? 's' : ''} (${plates} plates)`;
-    if (state.elevGrid) applyScale(plates);
+    if (!state.elevGrid) return;
+    clearTimeout(_scaleDebounce);
+    _scaleDebounce = setTimeout(() => applyScale(plates), 150);
   });
 
   // ── Workflow steps ────────────────────────────────────────────────────────
@@ -358,7 +384,6 @@ document.addEventListener('DOMContentLoaded', () => {
     state.bounds = bounds;
     setHint(null);
     updateAreaInfo(bounds);
-    btnDraw.disabled     = true;
     btnGenerate.disabled = false;
     btnClear.disabled    = false;
     setStep(2);
@@ -380,6 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
     btnBulkRecolor.style.display    = 'none';
     btnEditToggle.style.display     = 'none';
     bulkPanel.style.display         = 'none';
+    scaleSection.style.display      = 'none';
 
     statsWrap.classList.remove('visible');
     legendWrap.classList.remove('visible');
@@ -415,11 +441,13 @@ document.addEventListener('DOMContentLoaded', () => {
     setStep(3);
     progressWrap.classList.add('visible');
     statsWrap.classList.remove('visible');
+    progressFill.style.background = '';
     setProgress(0, 'Starting…');
 
     // Show the 3D panel; resize renderer after the CSS transition settles (0.4 s)
     previewPanel.classList.add('visible');
     previewLoad.classList.remove('hidden');
+    closeSidebar(); // on mobile: collapse drawer so the 3D panel is fully visible
     setTimeout(() => {
       state.renderer.resize();
       mapHandler.map.invalidateSize();
@@ -479,7 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error(err);
       setProgress(0, `Error: ${err.message}`);
       progressFill.style.background = '#f44336';
-      previewLoad.querySelector('p').textContent = `Failed: ${err.message}`;
+      previewLoad.classList.add('hidden');
     }
 
     btnGenerate.disabled = false;

@@ -18,6 +18,7 @@ class Renderer3D {
     this.controls  = null;
     this._raf      = null;
     this._built    = false;
+    this._camDist  = 30;   // updated in build(), used by resetCamera()
     // stored so we can dispose on rebuild
     this._brickMesh  = null;
     this._studMesh   = null;
@@ -194,6 +195,7 @@ class Renderer3D {
 
     // ── Camera position for 32×32 grid ────────────────────────────────────
     const d = COLS * CELL * 0.9;
+    this._camDist = d;
     this.camera.position.set(d, d * 0.85, d);
     this.controls.target.set(0, maxH * 0.3, 0);
     this.controls.update();
@@ -301,7 +303,7 @@ class Renderer3D {
 
   resetCamera() {
     if (!this._built) return;
-    const d = 30;
+    const d = this._camDist;
     this.camera.position.set(d, d * 0.85, d);
     this.controls.target.set(0, 0, 0);
     this.controls.update();

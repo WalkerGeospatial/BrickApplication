@@ -13,7 +13,8 @@
 const ImageryService = (() => {
   const TILE_URL  = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
   const TILE_SIZE = 256;
-  const tileCache = {};
+  const MAX_TILES = 150;
+  const tileCache = new Map(); // "z/x/y" → ImageData (insertion-order for eviction)
 
   // ── Brick colour palette — colours available as 1×1 plate (BL part 3024) ──
   // Source: BrickLink catalogColors.asp?itemType=P&itemNo=3024
@@ -256,7 +257,7 @@ const ImageryService = (() => {
 
   function loadTile(z, x, y) {
     const key = `${z}/${x}/${y}`;
-    if (tileCache[key]) return Promise.resolve(tileCache[key]);
+    if (tileCache.has(key)) return Promise.resolve(tileCache.get(key));
     return new Promise((resolve, reject) => {
       const img = new Image();
       img.crossOrigin = 'anonymous';
@@ -267,7 +268,8 @@ const ImageryService = (() => {
           const ctx = canvas.getContext('2d');
           ctx.drawImage(img, 0, 0);
           const imageData = ctx.getImageData(0, 0, TILE_SIZE, TILE_SIZE);
-          tileCache[key] = imageData;
+          tileCache.set(key, imageData);
+          if (tileCache.size > MAX_TILES) tileCache.delete(tileCache.keys().next().value);
           resolve(imageData);
         } catch (e) {
           reject(new Error(`Imagery tile ${key} blocked CORS. Try running via a local server.`));
@@ -354,7 +356,7 @@ const ImageryService = (() => {
         const pt  = allPoints[i];
         const tx  = lonToTileX(pt.lon, zoom);
         const ty  = latToTileY(pt.lat, zoom);
-        const img = tileCache[`${zoom}/${tx}/${ty}`];
+        const img = tileCache.get(`${zoom}/${tx}/${ty}`);
         const { px, py } = latLonToPixel(pt.lat, pt.lon, tx, ty, zoom);
         const idx = (py * TILE_SIZE + px) * 4;
         rSum += img.data[idx];
