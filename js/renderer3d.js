@@ -61,9 +61,11 @@ class Renderer3D {
   }
 
   _setupLighting() {
-    this.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    // High ambient so base colours read accurately regardless of face angle
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.75));
 
-    const sun = new THREE.DirectionalLight(0xfff4e0, 1.0);
+    // Neutral white sun — directional just for depth/shadow cues, not colour tinting
+    const sun = new THREE.DirectionalLight(0xffffff, 0.6);
     sun.position.set(20, 35, 15);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -76,7 +78,8 @@ class Renderer3D {
     sun.shadow.camera.far    = 100;
     this.scene.add(sun);
 
-    const fill = new THREE.DirectionalLight(0xa0c8ff, 0.35);
+    // Subtle neutral fill from the opposite side — no colour cast
+    const fill = new THREE.DirectionalLight(0xffffff, 0.2);
     fill.position.set(-10, 8, -15);
     this.scene.add(fill);
   }
