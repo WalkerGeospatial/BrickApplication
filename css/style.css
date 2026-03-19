@@ -19,9 +19,8 @@ html, body {
   background: var(--bg);
   color: var(--text);
   overflow: hidden;
-  /* Prevent iOS Safari from shifting layout when browser chrome shows/hides */
-  position: fixed;
-  width: 100%;
+  /* Prevent iOS pull-to-refresh and scroll bounce without breaking touch coordinates */
+  overscroll-behavior: none;
 }
 
 /* ─── Layout ─────────────────────────────────── */
