@@ -237,12 +237,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
   btnClosePicker.addEventListener('click', closePicker);
 
-  // Click on 3D canvas → pick a brick when edit mode is active
+  // Click on 3D canvas → pick a brick when edit mode is active (desktop)
   previewCanvas.addEventListener('click', e => {
     if (!state.editMode || !state.brickData) return;
     const instanceId = state.renderer.pickBrick(e.clientX, e.clientY);
     if (instanceId == null) { closePicker(); return; }
     openPicker(instanceId, e.clientX, e.clientY);
+  });
+
+  // Touch tap on 3D canvas → pick a brick on mobile.
+  // OrbitControls calls preventDefault() on touchstart which suppresses the
+  // click event on iOS Safari, so we listen to touchend directly.
+  // A distance threshold distinguishes a tap from a camera drag.
+  let _touchOrigin = null;
+  previewCanvas.addEventListener('touchstart', e => {
+    if (!state.editMode || !state.brickData) return;
+    _touchOrigin = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+  }, { passive: true });
+
+  previewCanvas.addEventListener('touchend', e => {
+    if (!state.editMode || !state.brickData || !_touchOrigin) return;
+    const t  = e.changedTouches[0];
+    const dx = t.clientX - _touchOrigin.x;
+    const dy = t.clientY - _touchOrigin.y;
+    _touchOrigin = null;
+    if (dx * dx + dy * dy > 100) return; // was a drag, not a tap (10 px threshold)
+    const instanceId = state.renderer.pickBrick(t.clientX, t.clientY);
+    if (instanceId == null) { closePicker(); return; }
+    openPicker(instanceId, t.clientX, t.clientY);
   });
 
   // ── Initial legend ───────────────────────────────────────────────────────
@@ -254,6 +276,7 @@ document.addEventListener('DOMContentLoaded', () => {
   btnDraw.addEventListener('click', () => {
     mapHandler.startDraw();
     setHint('Click and drag to draw your area on the map');
+    closeSidebar();
   });
 
   btnClear.addEventListener('click', () => {
@@ -335,6 +358,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.bounds = bounds;
     setHint(null);
     updateAreaInfo(bounds);
+    btnDraw.disabled     = true;
     btnGenerate.disabled = false;
     btnClear.disabled    = false;
     setStep(2);
@@ -347,6 +371,7 @@ document.addEventListener('DOMContentLoaded', () => {
     state.brickData      = null;
 
     areaInfo.innerHTML       = '<span style="color:var(--text-muted)">Draw a square on the map to begin.</span>';
+    btnDraw.disabled         = false;
     btnGenerate.disabled     = true;
     btnClear.disabled        = true;
     state.editMode           = false;

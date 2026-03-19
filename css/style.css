@@ -822,8 +822,10 @@ html, body {
   /* Bottom toolbar wraps and uses tighter padding */
   #preview-toolbar-bottom {
     flex-wrap: wrap;
+    justify-content: flex-start;
     gap: 6px;
     padding: 8px 10px;
+    padding-bottom: calc(8px + env(safe-area-inset-bottom));
   }
 
   .snap-btn {
@@ -851,12 +853,15 @@ html, body {
     overflow-y: auto;
   }
 
-  /* Brick colour picker goes full-width */
+  /* Brick colour picker: full-width, pinned to top so it never hides behind the bottom toolbar */
   #brick-color-picker {
     left: 10px !important;
-    right: 10px;
+    right: 10px !important;
+    top: 10px !important;
     width: auto;
     min-width: unset;
+    max-height: 55vh;
+    overflow-y: auto;
   }
 
   /* Larger swatches for touch targets */
