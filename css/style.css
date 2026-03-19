@@ -725,3 +725,116 @@ html, body {
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ─── Mobile menu button (hidden on desktop) ─── */
+.btn-menu {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0 4px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+/* ─── Sidebar backdrop (mobile overlay) ──────── */
+#sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 9;
+}
+
+#sidebar-backdrop.visible { display: block; }
+
+/* ─── Mobile layout (≤ 768px) ────────────────── */
+@media (max-width: 768px) {
+
+  /* Show the hamburger */
+  .btn-menu { display: block; }
+
+  /* Sidebar becomes a fixed drawer sliding in from the left */
+  #sidebar {
+    position: fixed;
+    top: 0;
+    left: calc(-1 * var(--sidebar-w) - 2px);
+    height: 100%;
+    transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 10;
+  }
+
+  #sidebar.open { left: 0; }
+
+  /* Panels stack vertically */
+  #panels { flex-direction: column; }
+
+  /* Map gets a fixed portion of the viewport height */
+  #map-panel {
+    height: 45vh;
+    flex: none;
+  }
+
+  /* 3D preview goes full-width and fills the rest */
+  #preview-panel {
+    width: 100% !important;
+    flex: 1;
+    border-left: none;
+    border-top: 1px solid var(--border);
+  }
+
+  /* Bottom toolbar wraps and uses tighter padding */
+  #preview-toolbar-bottom {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 10px;
+  }
+
+  .snap-btn {
+    padding: 8px 12px;
+    font-size: 12px;
+  }
+
+  /* Export buttons wrap */
+  .preview-exports {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .preview-exports button {
+    font-size: 11px;
+    padding: 6px 10px;
+  }
+
+  /* Bulk recolor panel goes full-width */
+  #bulk-recolor-panel {
+    left: 5px;
+    right: 5px;
+    width: auto;
+    max-height: 55vh;
+    overflow-y: auto;
+  }
+
+  /* Brick colour picker goes full-width */
+  #brick-color-picker {
+    left: 10px !important;
+    right: 10px;
+    width: auto;
+    min-width: unset;
+  }
+
+  /* Larger swatches for touch targets */
+  #picker-swatches,
+  #bulk-palette-swatches {
+    grid-template-columns: repeat(auto-fill, 28px);
+    gap: 4px;
+  }
+
+  .picker-swatch,
+  .bulk-source-swatch {
+    width: 28px;
+    height: 28px;
+  }
+}

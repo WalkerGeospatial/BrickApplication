@@ -72,6 +72,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const stepEls = [1, 2, 3].map(n => el(`step-${n}`));
 
+  // ── Mobile sidebar ───────────────────────────────────────────────────────
+
+  const sidebar         = el('sidebar');
+  const sidebarBackdrop = el('sidebar-backdrop');
+  const btnMenu         = el('btn-menu');
+
+  btnMenu.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    sidebarBackdrop.classList.toggle('visible');
+  });
+
+  sidebarBackdrop.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+    sidebarBackdrop.classList.remove('visible');
+  });
+
   // ── Renderer ─────────────────────────────────────────────────────────────
 
   state.renderer = new Renderer3D('preview-canvas');
