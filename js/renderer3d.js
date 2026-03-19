@@ -61,11 +61,9 @@ class Renderer3D {
   }
 
   _setupLighting() {
-    // High ambient so base colours read accurately regardless of face angle
-    this.scene.add(new THREE.AmbientLight(0xffffff, 0.75));
+    this.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 
-    // Neutral white sun — directional just for depth/shadow cues, not colour tinting
-    const sun = new THREE.DirectionalLight(0xffffff, 0.6);
+    const sun = new THREE.DirectionalLight(0xfff4e0, 1.0);
     sun.position.set(20, 35, 15);
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
@@ -78,8 +76,7 @@ class Renderer3D {
     sun.shadow.camera.far    = 100;
     this.scene.add(sun);
 
-    // Subtle neutral fill from the opposite side — no colour cast
-    const fill = new THREE.DirectionalLight(0xffffff, 0.2);
+    const fill = new THREE.DirectionalLight(0xa0c8ff, 0.35);
     fill.position.set(-10, 8, -15);
     this.scene.add(fill);
   }
@@ -127,7 +124,6 @@ class Renderer3D {
     // Stud: one per stud position (exactly one stud per cell on a 32×32 plate)
     const studGeo = new THREE.CylinderGeometry(STUD_R, STUD_R, STUD_H, 12);
 
-    // Shared materials (InstancedMesh needs one material; colour set per-instance)
     const brickMat = new THREE.MeshStandardMaterial({ roughness: 0.45, metalness: 0.0 });
     const studMat  = new THREE.MeshStandardMaterial({ roughness: 0.40, metalness: 0.0 });
 
@@ -160,7 +156,7 @@ class Renderer3D {
         const z = -originZ - row * CELL; // negate so north(high row) = -Z = background = top of screen
 
         this._colors[idx] = hex;
-        color.set(hex);
+        color.set(hex).convertSRGBToLinear();
 
         // ── Brick body ──────────────────────────────────────────────────
         dummy.position.set(x, h / 2, z);
@@ -252,7 +248,7 @@ class Renderer3D {
   setInstanceColor(instanceId, hex) {
     if (!this._brickMesh || instanceId == null) return;
     this._colors[instanceId] = hex;
-    const c = new THREE.Color(hex);
+    const c = new THREE.Color(hex).convertSRGBToLinear();
     this._brickMesh.setColorAt(instanceId, c);
     this._studMesh.setColorAt(instanceId, c);
     this._brickMesh.instanceColor.needsUpdate = true;
@@ -263,7 +259,7 @@ class Renderer3D {
   replaceColor(fromHex, toHex) {
     if (!this._brickMesh || !this._colors) return;
     const from = fromHex.toUpperCase();
-    const to   = new THREE.Color(toHex);
+    const to   = new THREE.Color(toHex).convertSRGBToLinear();
     for (let i = 0; i < this._colors.length; i++) {
       if ((this._colors[i] || '').toUpperCase() === from) {
         this._colors[i] = toHex;
